@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📺 IPTV Italia - Preferiti</title>
-    <!-- Carica hls.js da CDN -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * { box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             max-width: 1000px;
             margin: 20px auto;
             padding: 20px;
@@ -25,9 +24,7 @@
             text-align: center;
             color: #1a1a2e;
             margin-top: 0;
-            font-weight: 600;
         }
-        h1 span { font-size: 28px; }
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -41,60 +38,87 @@
             border-radius: 10px;
             font-size: 15px;
             background: #fafbfc;
-            min-width: 180px;
+            min-width: 150px;
         }
         .controls input:focus, .controls select:focus {
             outline: 2px solid #0969da;
             border-color: transparent;
         }
-        #channelSelect {
-            width: 100%;
-            padding: 8px;
-            font-size: 15px;
+        .btn-fav {
+            padding: 10px 20px;
             border-radius: 10px;
+            border: 2px solid #ffb800;
+            background: white;
+            font-weight: 600;
+            cursor: pointer;
+            color: #8a6d00;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-fav.active {
+            background: #ffb800;
+            color: #1a1a2e;
+            border-color: #ffb800;
+        }
+
+        /* LISTA CANALI */
+        .channel-list {
+            max-height: 450px;
+            overflow-y: auto;
             border: 1px solid #d0d7de;
+            border-radius: 12px;
             background: #fafbfc;
-            min-height: 400px;
         }
-        #channelSelect option {
-            padding: 6px 10px;
-            border-bottom: 1px solid #f0f0f0;
-            display: flex;
-            align-items: center;
-        }
-        #channelSelect option:checked {
-            background: #0969da;
-            color: white;
-        }
-        .channel-option {
+        .channel-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 4px 0;
+            padding: 8px 14px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background 0.15s;
         }
-        .channel-option .info {
+        .channel-item:hover {
+            background: #eef2f7;
+        }
+        .channel-item.active-channel {
+            background: #0969da;
+            color: white;
+        }
+        .channel-item.active-channel .fav-star {
+            color: white;
+        }
+        .channel-item .info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+        .channel-item .info .name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .channel-logo {
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             object-fit: contain;
-            vertical-align: middle;
             border-radius: 6px;
             background: white;
+            flex-shrink: 0;
         }
         .fav-star {
-            color: #ffb800;
-            font-size: 18px;
+            font-size: 24px;
             cursor: pointer;
             user-select: none;
+            flex-shrink: 0;
             margin-left: 10px;
+            transition: transform 0.15s;
             background: none;
             border: none;
-            padding: 0 5px;
-            transition: transform 0.2s;
+            padding: 0 4px;
+            line-height: 1;
         }
         .fav-star:hover {
             transform: scale(1.3);
@@ -104,16 +128,34 @@
         }
         .fav-star.active {
             color: #ffb800;
-            text-shadow: 0 0 8px rgba(255, 184, 0, 0.5);
+            text-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
         }
+        .channel-item.active-channel .fav-star.active {
+            color: #ffb800;
+        }
+        .channel-item.active-channel .fav-star.inactive {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .group-header {
+            font-weight: bold;
+            background: #e9ecef;
+            padding: 6px 14px;
+            color: #1a1a2e;
+            font-size: 14px;
+            border-bottom: 1px solid #d0d7de;
+            display: flex;
+            justify-content: space-between;
+        }
+
         video {
             width: 100%;
             max-height: 520px;
             background: #0d1117;
             border-radius: 14px;
             margin-top: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
+
         .status-bar {
             display: flex;
             justify-content: space-between;
@@ -135,86 +177,53 @@
             color: #1a1a2e;
             font-weight: 600;
         }
-        .error-msg {
-            background: #ffe3e6;
-            color: #b4233a;
-            padding: 12px 18px;
-            border-radius: 10px;
-            margin: 10px 0;
-            border-left: 4px solid #b4233a;
-        }
         .info-box {
             background: #f6f8fa;
             padding: 12px 18px;
             border-radius: 10px;
             margin: 10px 0;
             font-size: 14px;
-            color: #24292f;
             border-left: 4px solid #0969da;
         }
         .footer {
             text-align: center;
-            margin-top: 24px;
+            margin-top: 20px;
             font-size: 13px;
             color: #8b949e;
         }
-        .favorites-header {
-            background: #fffbee;
-            border-left: 4px solid #ffb800;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin: 5px 0 10px 0;
-            font-weight: bold;
-            color: #8a6d00;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .empty-msg {
+            padding: 30px;
+            text-align: center;
+            color: #8b949e;
         }
-        .favorites-header button {
-            background: #ffb800;
-            border: none;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            color: #1a1a2e;
-            transition: background 0.2s;
-        }
-        .favorites-header button:hover {
-            background: #e6a500;
-        }
-        select option[data-fav="true"] {
-            background-color: #fff8e7 !important;
-        }
-        select option[data-fav="true"]:checked {
-            background: #0969da !important;
-            color: white !important;
+        .loading-msg {
+            padding: 30px;
+            text-align: center;
+            color: #57606a;
         }
         @media (max-width: 600px) {
-            .channel-logo { width: 20px; height: 20px; }
-            .fav-star { font-size: 16px; }
+            .channel-logo { width: 22px; height: 22px; }
+            .fav-star { font-size: 20px; }
+            .channel-item { padding: 6px 10px; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1><span>📺</span> IPTV Italia <span style="font-size: 18px; color: #ffb800;">⭐</span></h1>
+    <h1>📺 IPTV Italia <span style="font-size:20px; color:#ffb800;">⭐</span></h1>
 
     <div class="controls">
         <input type="text" id="searchInput" placeholder="🔍 Cerca canale..." oninput="filterChannels()">
         <select id="groupSelect" onchange="filterChannels()">
             <option value="">📂 Tutti i gruppi</option>
         </select>
-        <button id="showFavBtn" style="padding: 8px 16px; border-radius: 10px; border: 2px solid #ffb800; background: white; font-weight: 600; cursor: pointer; color: #8a6d00;">
-            ⭐ Solo preferiti
-        </button>
+        <button class="btn-fav" id="showFavBtn">⭐ Solo preferiti</button>
     </div>
 
-    <select id="channelSelect" onchange="loadChannel()" size="14">
-        <option value="">⏳ Caricamento in corso...</option>
-    </select>
+    <div class="channel-list" id="channelList">
+        <div class="loading-msg">⏳ Caricamento in corso...</div>
+    </div>
 
     <video id="videoPlayer" controls autoplay muted playsinline></video>
 
@@ -226,13 +235,12 @@
         </span>
     </div>
 
-    <div id="infoBox" class="info-box">
-        ⭐ Clicca sulla stella per aggiungere/rimuovere dai preferiti. I preferiti si salvano automaticamente!
+    <div class="info-box">
+        ⭐ <strong>Clicca sulla stella</strong> per aggiungere/rimuovere dai preferiti. I preferiti si salvano automaticamente nel browser.
     </div>
 
     <div class="footer">
-        Playlist: <strong>lista.m3u</strong> (nella stessa cartella) &bull; 
-        <span id="favStatus">Preferiti salvati nel browser</span>
+        Playlist: <strong>lista.m3u</strong> (nella stessa cartella)
     </div>
 </div>
 
@@ -244,7 +252,7 @@
     const STORAGE_KEY = 'iptv_favorites';
 
     // ============================================================
-    //  VARIABILI GLOBALI
+    //  VARIABILI
     // ============================================================
     let allChannels = [];
     let filteredChannels = [];
@@ -252,9 +260,10 @@
     let favorites = new Set();
     let hls = null;
     let showOnlyFavorites = false;
+    let currentChannelIndex = -1;
 
     // DOM
-    const channelSelect = document.getElementById('channelSelect');
+    const channelList = document.getElementById('channelList');
     const videoPlayer = document.getElementById('videoPlayer');
     const searchInput = document.getElementById('searchInput');
     const groupSelect = document.getElementById('groupSelect');
@@ -262,22 +271,15 @@
     const statusBadge = document.getElementById('statusBadge');
     const favCounter = document.getElementById('favCounter');
     const showFavBtn = document.getElementById('showFavBtn');
-    const favStatus = document.getElementById('favStatus');
 
     // ============================================================
-    //  GESTIONE PREFERITI (localStorage)
+    //  PREFERITI
     // ============================================================
     function loadFavorites() {
         try {
             const data = localStorage.getItem(STORAGE_KEY);
-            if (data) {
-                favorites = new Set(JSON.parse(data));
-            } else {
-                favorites = new Set();
-            }
-        } catch (e) {
-            favorites = new Set();
-        }
+            favorites = data ? new Set(JSON.parse(data)) : new Set();
+        } catch { favorites = new Set(); }
         updateFavUI();
     }
 
@@ -287,13 +289,10 @@
     }
 
     function toggleFavorite(channelId) {
-        if (favorites.has(channelId)) {
-            favorites.delete(channelId);
-        } else {
-            favorites.add(channelId);
-        }
+        if (favorites.has(channelId)) favorites.delete(channelId);
+        else favorites.add(channelId);
         saveFavorites();
-        filterChannels(); // Ricarica la lista per aggiornare le stelle
+        filterChannels();
     }
 
     function isFavorite(channelId) {
@@ -302,17 +301,8 @@
 
     function updateFavUI() {
         favCounter.textContent = `⭐ ${favorites.size} preferiti`;
-        favStatus.textContent = `⭐ ${favorites.size} preferiti salvati`;
-        // Aggiorna il testo del pulsante
-        if (showOnlyFavorites) {
-            showFavBtn.textContent = '⭐ Mostra tutti';
-            showFavBtn.style.borderColor = '#0969da';
-            showFavBtn.style.color = '#0969da';
-        } else {
-            showFavBtn.textContent = '⭐ Solo preferiti';
-            showFavBtn.style.borderColor = '#ffb800';
-            showFavBtn.style.color = '#8a6d00';
-        }
+        showFavBtn.textContent = showOnlyFavorites ? '⭐ Mostra tutti' : '⭐ Solo preferiti';
+        showFavBtn.classList.toggle('active', showOnlyFavorites);
     }
 
     // ============================================================
@@ -345,14 +335,12 @@
                     url: '',
                     userAgent: null
                 };
-            } 
-            else if (trimmed.startsWith('#EXTVLCOPT:http-user-agent=')) {
+            } else if (trimmed.startsWith('#EXTVLCOPT:http-user-agent=')) {
                 if (current) {
                     const uaMatch = trimmed.match(/http-user-agent=(.+)$/);
                     if (uaMatch) current.userAgent = uaMatch[1];
                 }
-            } 
-            else if (!trimmed.startsWith('#') && current) {
+            } else if (!trimmed.startsWith('#') && current) {
                 current.url = trimmed;
                 if (current.url) channels.push(current);
                 current = null;
@@ -362,29 +350,23 @@
     }
 
     // ============================================================
-    //  CARICAMENTO FILE LOCALE
+    //  CARICAMENTO
     // ============================================================
     function loadLocalPlaylist() {
-        channelSelect.innerHTML = '<option value="">⏳ Caricamento in corso...</option>';
+        channelList.innerHTML = '<div class="loading-msg">⏳ Caricamento in corso...</div>';
 
         fetch(M3U_FILE)
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`File non trovato (HTTP ${response.status}). Assicurati che "${M3U_FILE}" sia nella stessa cartella.`);
-                }
+                if (!response.ok) throw new Error(`File non trovato (HTTP ${response.status})`);
                 return response.text();
             })
             .then(text => {
                 const channels = parseM3U(text);
-                if (channels.length === 0) {
-                    throw new Error('Nessun canale trovato.');
-                }
+                if (channels.length === 0) throw new Error('Nessun canale trovato.');
 
                 allChannels = channels;
                 groups.clear();
-                allChannels.forEach(ch => {
-                    if (ch.group) groups.add(ch.group);
-                });
+                allChannels.forEach(ch => { if (ch.group) groups.add(ch.group); });
 
                 groupSelect.innerHTML = '<option value="">📂 Tutti i gruppi</option>';
                 [...groups].sort().forEach(g => {
@@ -394,30 +376,26 @@
                     groupSelect.appendChild(opt);
                 });
 
-                // Carica i preferiti dopo aver caricato i canali
                 loadFavorites();
                 filterChannels();
                 statusBadge.textContent = `✅ Caricati ${allChannels.length} canali`;
             })
             .catch(error => {
                 console.error('Errore:', error);
-                channelSelect.innerHTML = `<option value="">❌ Errore: ${error.message}</option>`;
-                statusBadge.textContent = '❌ Errore';
-                const msg = document.createElement('div');
-                msg.className = 'error-msg';
-                msg.innerHTML = `
-                    <strong>⚠️ File non trovato!</strong><br>
-                    Assicurati che il file <strong>${M3U_FILE}</strong> sia nella STESSA CARTELLA di questo file HTML.
-                    <br><br>
-                    <strong>Scaricalo da:</strong> 
-                    <a href="https://forgejo.it/peppenamir/iptv_italia/raw/branch/main/lista.m3u" target="_blank">https://forgejo.it/peppenamir/iptv_italia/raw/branch/main/lista.m3u</a>
+                channelList.innerHTML = `
+                    <div class="empty-msg">
+                        ❌ <strong>Errore: ${error.message}</strong><br><br>
+                        Assicurati che il file <strong>${M3U_FILE}</strong> sia nella STESSA CARTELLA di questo file HTML.
+                        <br><br>
+                        <a href="https://forgejo.it/peppenamir/iptv_italia/raw/branch/main/lista.m3u" target="_blank">⬇️ Scarica la playlist qui</a>
+                    </div>
                 `;
-                document.querySelector('.container').insertBefore(msg, document.querySelector('.controls'));
+                statusBadge.textContent = '❌ Errore';
             });
     }
 
     // ============================================================
-    //  FILTRO E RENDER (con preferiti)
+    //  FILTRO E RENDER
     // ============================================================
     function filterChannels() {
         const searchTerm = searchInput.value.toLowerCase().trim();
@@ -430,7 +408,7 @@
             return matchName && matchGroup && matchFav;
         });
 
-        // Ordina: prima i preferiti, poi il resto
+        // Ordina: preferiti prima
         filteredChannels.sort((a, b) => {
             const aFav = isFavorite(a.id);
             const bFav = isFavorite(b.id);
@@ -439,114 +417,106 @@
             return a.name.localeCompare(b.name);
         });
 
-        let html = '';
-        let currentGroup = '';
-        let hasFavorites = filteredChannels.some(ch => isFavorite(ch.id));
-
-        // Se ci sono preferiti, mostra un header speciale
-        if (hasFavorites && !showOnlyFavorites) {
-            html += `<option value="" disabled style="background: #fffbee; color: #8a6d00; font-weight: bold; padding: 8px;">
-                ⭐ I TUOI PREFERITI (${favorites.size})
-            </option>`;
-            // Mostra prima i preferiti
-            const favChannels = filteredChannels.filter(ch => isFavorite(ch.id));
-            favChannels.forEach((ch, idx) => {
-                html += renderChannelOption(ch, idx);
-            });
-            html += `<option value="" disabled style="background: #f0f0f0; padding: 4px;">─────────────</option>`;
-            // Poi tutti gli altri
-            const otherChannels = filteredChannels.filter(ch => !isFavorite(ch.id));
-            otherChannels.forEach((ch, idx) => {
-                if (ch.group !== currentGroup) {
-                    currentGroup = ch.group;
-                    html += `<option value="" disabled style="font-weight:bold; background:#e9ecef; color:#000;">📁 ${ch.group}</option>`;
-                }
-                html += renderChannelOption(ch, idx);
-            });
-        } else {
-            // Visualizzazione normale
-            filteredChannels.forEach((ch, idx) => {
-                if (ch.group !== currentGroup) {
-                    currentGroup = ch.group;
-                    html += `<option value="" disabled style="font-weight:bold; background:#e9ecef; color:#000;">📁 ${ch.group}</option>`;
-                }
-                html += renderChannelOption(ch, idx);
-            });
-        }
-
-        if (filteredChannels.length === 0) {
-            if (showOnlyFavorites) {
-                html = '<option value="">📭 Nessun preferito. Aggiungi cliccando sulla ⭐</option>';
-            } else {
-                html = '<option value="">📭 Nessun canale trovato</option>';
-            }
-        }
-
-        channelSelect.innerHTML = html;
+        renderChannels();
         channelCounter.textContent = `📡 Canali: ${filteredChannels.length} / ${allChannels.length}`;
         updateFavUI();
     }
 
-    function renderChannelOption(ch, index) {
-        const isFav = isFavorite(ch.id);
-        const logoHtml = ch.logo 
-            ? `<img src="${ch.logo}" class="channel-logo" onerror="this.style.display='none'">` 
-            : '';
-
-        // Usiamo data-fav per lo styling via CSS
-        const favAttr = isFav ? 'data-fav="true"' : '';
-        const favStar = isFav ? '⭐' : '☆';
-
-        return `<option value="${index}" ${favAttr} style="display: flex; align-items: center; justify-content: space-between;">
-            <span class="channel-option">
-                <span class="info">${logoHtml} ${ch.name}</span>
-                <span class="fav-star ${isFav ? 'active' : 'inactive'}" onclick="event.stopPropagation(); toggleFavoriteById('${ch.id}')">${favStar}</span>
-            </span>
-        </option>`;
-    }
-
-    // Funzione per toggle favorite dall'opzione
-    function toggleFavoriteById(id) {
-        toggleFavorite(id);
-    }
-
-    // ============================================================
-    //  CARICA CANALE NEL PLAYER
-    // ============================================================
-    function loadChannel() {
-        const selectedIndex = channelSelect.value;
-        if (selectedIndex === '' || !filteredChannels[selectedIndex]) {
-            videoPlayer.pause();
-            videoPlayer.src = '';
-            if (hls) { hls.destroy(); hls = null; }
+    function renderChannels() {
+        if (filteredChannels.length === 0) {
+            channelList.innerHTML = `<div class="empty-msg">📭 Nessun canale trovato</div>`;
             return;
         }
 
-        const channel = filteredChannels[parseInt(selectedIndex)];
-        if (!channel || !channel.url) return;
+        let html = '';
+        let currentGroup = '';
+        let favCount = filteredChannels.filter(ch => isFavorite(ch.id)).length;
 
-        // Distrugge eventuale istanza hls precedente
-        if (hls) {
-            hls.destroy();
-            hls = null;
+        // Header preferiti
+        if (favCount > 0 && !showOnlyFavorites) {
+            html += `<div class="group-header" style="background:#fffbee; color:#8a6d00; border-left:4px solid #ffb800;">
+                ⭐ I tuoi preferiti (${favCount})
+            </div>`;
+            filteredChannels.filter(ch => isFavorite(ch.id)).forEach((ch, idx) => {
+                html += renderChannelItem(ch, idx);
+            });
+            // Separatore
+            html += `<div style="border-bottom:2px dashed #d0d7de; margin:4px 0;"></div>`;
         }
 
+        // Tutti i canali (esclusi i preferiti se già mostrati sopra)
+        const channelsToShow = showOnlyFavorites 
+            ? filteredChannels 
+            : filteredChannels.filter(ch => !isFavorite(ch.id));
+
+        channelsToShow.forEach((ch, idx) => {
+            // Se è un preferito e siamo in modalità "solo preferiti", lo mostriamo comunque
+            // (già filtrati sopra)
+            if (ch.group !== currentGroup) {
+                currentGroup = ch.group;
+                html += `<div class="group-header">📁 ${ch.group}</div>`;
+            }
+            html += renderChannelItem(ch, idx);
+        });
+
+        channelList.innerHTML = html;
+    }
+
+    function renderChannelItem(ch, index) {
+        const isFav = isFavorite(ch.id);
+        const isActive = (currentChannelIndex === index);
+        const logoHtml = ch.logo 
+            ? `<img src="${ch.logo}" class="channel-logo" onerror="this.style.display='none'" loading="lazy">` 
+            : '';
+
+        const starClass = isFav ? 'active' : 'inactive';
+        const starSymbol = isFav ? '⭐' : '☆';
+
+        return `
+            <div class="channel-item ${isActive ? 'active-channel' : ''}" data-index="${index}" onclick="selectChannel(${index})">
+                <div class="info">
+                    ${logoHtml}
+                    <span class="name">${ch.name}</span>
+                </div>
+                <button class="fav-star ${starClass}" onclick="event.stopPropagation(); toggleFavoriteById('${ch.id}')" title="Aggiungi/rimuovi preferito">
+                    ${starSymbol}
+                </button>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    //  SELEZIONE CANALE
+    // ============================================================
+    function selectChannel(index) {
+        currentChannelIndex = index;
+        const channel = filteredChannels[index];
+        if (!channel || !channel.url) return;
+
+        // Aggiorna la UI
+        document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active-channel'));
+        const items = document.querySelectorAll('.channel-item');
+        if (items[index]) items[index].classList.add('active-channel');
+
+        // Distruggi hls
+        if (hls) { hls.destroy(); hls = null; }
+
         const url = channel.url;
-        const isHls = url.includes('.m3u8') || url.includes('m3u8');
+        const isHls = url.includes('.m3u8');
         const isMpd = url.includes('.mpd');
         const isYoutube = url.includes('youtube.com') || url.includes('twitch.tv');
 
         if (isYoutube) {
             videoPlayer.pause();
             videoPlayer.src = '';
-            alert(`⚠️ "${channel.name}" è un live di YouTube/Twitch. Apri il link direttamente.`);
+            alert(`⚠️ "${channel.name}" è un live YouTube/Twitch. Aprilo nel browser.`);
             return;
         }
 
         if (isMpd) {
             videoPlayer.pause();
             videoPlayer.src = '';
-            alert(`⚠️ "${channel.name}" usa DASH (.mpd), non supportato dal browser. Usa VLC.`);
+            alert(`⚠️ "${channel.name}" usa DASH (.mpd). Usa VLC.`);
             return;
         }
 
@@ -565,10 +535,6 @@
                     }
                 });
                 return;
-            } else {
-                videoPlayer.src = url;
-                videoPlayer.play().catch(e => console.warn(e));
-                return;
             }
         }
 
@@ -581,8 +547,12 @@
         });
     }
 
+    function toggleFavoriteById(id) {
+        toggleFavorite(id);
+    }
+
     // ============================================================
-    //  PULSANTE "SOLO PREFERITI"
+    //  PULSANTE PREFERITI
     // ============================================================
     showFavBtn.addEventListener('click', function() {
         showOnlyFavorites = !showOnlyFavorites;
