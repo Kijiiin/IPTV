@@ -3,82 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📺 IPTV Italia - Player</title>
+    <title>📺 IPTV Italia - Player Locale</title>
     <style>
         body {
-            font-family: sans-serif;
-            max-width: 900px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 960px;
             margin: 20px auto;
             padding: 20px;
-            background: #f4f4f4;
+            background: #f0f2f5;
         }
         .container {
             background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
         }
-        h1 { text-align: center; color: #333; }
+        h1 {
+            text-align: center;
+            color: #1a1a2e;
+            margin-top: 0;
+            font-weight: 600;
+        }
         .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 15px;
+            gap: 12px;
+            margin-bottom: 18px;
         }
         .controls input, .controls select {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            min-width: 200px;
+            padding: 10px 14px;
+            border: 1px solid #d0d7de;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #fafbfc;
+            min-width: 180px;
         }
-        .controls select { flex: 2; }
-        .channel-group {
-            font-weight: bold;
-            background: #e9ecef;
-            padding: 6px 12px;
-            border-radius: 4px;
-            margin: 5px 0;
+        .controls input:focus, .controls select:focus {
+            outline: 2px solid #0969da;
+            border-color: transparent;
         }
-        .channel-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 5px 10px;
+        #channelSelect {
+            width: 100%;
+            padding: 8px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: 1px solid #d0d7de;
+            background: #fafbfc;
+            min-height: 300px;
         }
-        .channel-option img {
-            width: 30px;
-            height: 30px;
-            object-fit: contain;
-            border-radius: 4px;
-            background: white;
+        #channelSelect option {
+            padding: 6px 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        #channelSelect option:checked {
+            background: #0969da;
+            color: white;
         }
         video {
             width: 100%;
-            max-height: 500px;
-            background: #000;
-            border-radius: 12px;
-            margin-top: 10px;
+            max-height: 520px;
+            background: #0d1117;
+            border-radius: 14px;
+            margin-top: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            font-size: 14px;
+            color: #57606a;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .status-bar .badge {
+            background: #e1e4e8;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .error-msg {
+            background: #ffe3e6;
+            color: #b4233a;
+            padding: 12px 18px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #b4233a;
+        }
+        .info-box {
+            background: #f6f8fa;
+            padding: 12px 18px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #24292f;
+            border-left: 4px solid #0969da;
         }
         .footer {
-            font-size: 14px;
-            color: #777;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: #8b949e;
         }
-        .loading {
-            text-align: center;
-            padding: 30px;
-            color: #555;
-        }
-        .error {
-            color: #d32f2f;
-            background: #ffebee;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 10px 0;
+        .channel-logo {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            vertical-align: middle;
+            margin-right: 10px;
+            border-radius: 6px;
+            background: white;
         }
     </style>
 </head>
@@ -86,7 +122,7 @@
 
 <div class="container">
     <h1>📺 IPTV Italia</h1>
-    
+
     <div class="controls">
         <input type="text" id="searchInput" placeholder="🔍 Cerca canale..." oninput="filterChannels()">
         <select id="groupSelect" onchange="filterChannels()">
@@ -94,148 +130,185 @@
         </select>
     </div>
 
-    <select id="channelSelect" onchange="loadChannel()" size="10" style="width:100%; padding:8px; font-size:15px;">
-        <option value="">-- Caricamento canali... --</option>
+    <select id="channelSelect" onchange="loadChannel()" size="12">
+        <option value="">⏳ Caricamento in corso...</option>
     </select>
 
-    <video id="videoPlayer" controls autoplay style="width: 100%; max-height: 500px; background: #000; border-radius: 12px; margin-top: 10px;">
+    <video id="videoPlayer" controls autoplay>
         Il tuo browser non supporta la riproduzione video.
     </video>
 
-    <div class="footer">Playlist: <span id="playlistUrlDisplay">https://forgejo.it/peppenamir/iptv_italia/raw/branch/main/lista.m3u</span></div>
+    <div class="status-bar">
+        <span id="channelCounter">📡 Canali: 0</span>
+        <span class="badge" id="statusBadge">✅ Playlist locale</span>
+    </div>
+
+    <div id="infoBox" class="info-box">
+        💡 I canali Rai e Mediaset richiedono uno <strong>user-agent</strong> speciale (HbbTV/1.6.1). 
+        Il browser non può impostarlo, quindi potrebbero non funzionare. Usa <strong>VLC</strong> per quei canali.
+    </div>
+
+    <div class="footer">
+        Playlist: <strong>lista.m3u</strong> (nella stessa cartella di questo file)
+    </div>
 </div>
 
 <script>
-    // ========== CONFIGURAZIONE ==========
-    const M3U_URL = 'https://forgejo.it/peppenamir/iptv_italia/raw/branch/main/lista.m3u';
-    // Per testare senza problemi di CORS, puoi scaricare il file e metterlo nella stessa cartella, poi decommentare la riga sotto e commentare quella sopra:
-    // const M3U_URL = 'lista.m3u';
+    // ============================================================
+    //  CONFIGURAZIONE: CARICA IL FILE M3U DALLA STESSA CARTELLA
+    // ============================================================
+    const M3U_FILE = 'lista.m3u';   // Nome esatto del file scaricato
 
-    // ========== VARIABILI GLOBALI ==========
+    // ============================================================
+    //  VARIABILI E DOM
+    // ============================================================
     let allChannels = [];
     let filteredChannels = [];
     let groups = new Set();
 
-    // Elementi DOM
     const channelSelect = document.getElementById('channelSelect');
     const videoPlayer = document.getElementById('videoPlayer');
     const searchInput = document.getElementById('searchInput');
     const groupSelect = document.getElementById('groupSelect');
-    const playlistUrlDisplay = document.getElementById('playlistUrlDisplay');
+    const channelCounter = document.getElementById('channelCounter');
+    const statusBadge = document.getElementById('statusBadge');
+    const infoBox = document.getElementById('infoBox');
 
-    playlistUrlDisplay.textContent = M3U_URL;
+    // ============================================================
+    //  PARSER M3U
+    // ============================================================
+    function parseM3U(text) {
+        const lines = text.split('\n');
+        const channels = [];
+        let current = null;
 
-    // ========== PARSER M3U MIGLIORATO ==========
-    async function loadPlaylist() {
-        try {
-            channelSelect.innerHTML = '<option value="">⏳ Caricamento in corso...</option>';
-            
-            const response = await fetch(M3U_URL);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const text = await response.text();
-            
-            const lines = text.split('\n');
-            let channels = [];
-            let current = null;
-            let userAgent = null;
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
 
-            for (const line of lines) {
-                const trimmed = line.trim();
-                
-                if (trimmed.startsWith('#EXTINF:')) {
-                    // Estrae tutti gli attributi
-                    const extinf = trimmed;
-                    const nameMatch = extinf.match(/,(.+)$/);
-                    const name = nameMatch ? nameMatch[1].trim() : 'Canale senza nome';
-                    
-                    // Estrae tvg-id, tvg-logo, tvg-group
-                    const tvgIdMatch = extinf.match(/tvg-id="([^"]*)"/);
-                    const tvgLogoMatch = extinf.match(/tvg-logo="([^"]*)"/);
-                    const tvgGroupMatch = extinf.match(/tvg-group="([^"]*)"/);
-                    
-                    current = {
-                        name: name,
-                        tvgId: tvgIdMatch ? tvgIdMatch[1] : '',
-                        logo: tvgLogoMatch ? tvgLogoMatch[1] : '',
-                        group: tvgGroupMatch ? tvgGroupMatch[1] : 'Altro',
-                        url: '',
-                        userAgent: null
-                    };
+            if (trimmed.startsWith('#EXTINF:')) {
+                const nameMatch = trimmed.match(/,(.+)$/);
+                const name = nameMatch ? nameMatch[1].trim() : 'Canale senza nome';
+
+                const tvgIdMatch = trimmed.match(/tvg-id="([^"]*)"/);
+                const tvgLogoMatch = trimmed.match(/tvg-logo="([^"]*)"/);
+                const tvgGroupMatch = trimmed.match(/tvg-group="([^"]*)"/);
+
+                current = {
+                    name: name,
+                    tvgId: tvgIdMatch ? tvgIdMatch[1] : '',
+                    logo: tvgLogoMatch ? tvgLogoMatch[1] : '',
+                    group: tvgGroupMatch ? tvgGroupMatch[1] : 'Altro',
+                    url: '',
+                    userAgent: null
+                };
+            } 
+            else if (trimmed.startsWith('#EXTVLCOPT:http-user-agent=')) {
+                if (current) {
+                    const uaMatch = trimmed.match(/http-user-agent=(.+)$/);
+                    if (uaMatch) current.userAgent = uaMatch[1];
                 }
-                else if (trimmed.startsWith('#EXTVLCOPT:http-user-agent=')) {
-                    // Salva lo user-agent per il canale corrente
-                    if (current) {
-                        const uaMatch = trimmed.match(/http-user-agent=(.+)$/);
-                        if (uaMatch) current.userAgent = uaMatch[1];
-                    }
-                }
-                else if (trimmed && !trimmed.startsWith('#') && current) {
-                    // Questa è l'URL del canale
-                    current.url = trimmed;
-                    channels.push(current);
-                    current = null;
-                }
-            }
-
-            if (channels.length === 0) throw new Error('Nessun canale trovato nella playlist.');
-
-            allChannels = channels;
-            
-            // Costruisce la lista dei gruppi
-            groups.clear();
-            allChannels.forEach(ch => {
-                if (ch.group) groups.add(ch.group);
-            });
-            
-            // Popola il filtro gruppi
-            groupSelect.innerHTML = '<option value="">📂 Tutti i gruppi</option>';
-            [...groups].sort().forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g;
-                opt.textContent = g;
-                groupSelect.appendChild(opt);
-            });
-
-            // Applica i filtri iniziali
-            filterChannels();
-            
-        } catch (error) {
-            console.error('Errore:', error);
-            channelSelect.innerHTML = `<option value="">❌ Errore: ${error.message}</option>`;
-            // Mostra un messaggio di aiuto se è un problema di CORS
-            if (error.message.includes('fetch')) {
-                channelSelect.innerHTML += `<option value="">💡 Prova a scaricare il file M3U localmente e usa la variabile M3U_URL commentata nel codice.</option>`;
+            } 
+            else if (!trimmed.startsWith('#') && current) {
+                current.url = trimmed;
+                if (current.url) channels.push(current);
+                current = null;
             }
         }
+
+        return channels;
     }
 
-    // ========== FILTRO CANALI ==========
+    // ============================================================
+    //  CARICAMENTO FILE LOCALE
+    // ============================================================
+    function loadLocalPlaylist() {
+        channelSelect.innerHTML = '<option value="">⏳ Caricamento in corso...</option>';
+
+        // Usa fetch per caricare il file locale (nessun problema CORS se è nella stessa cartella)
+        fetch(M3U_FILE)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`File non trovato (HTTP ${response.status}). Assicurati che "${M3U_FILE}" sia nella stessa cartella.`);
+                }
+                return response.text();
+            })
+            .then(text => {
+                const channels = parseM3U(text);
+                if (channels.length === 0) {
+                    throw new Error('Nessun canale trovato nel file M3U.');
+                }
+
+                allChannels = channels;
+                groups.clear();
+                allChannels.forEach(ch => {
+                    if (ch.group) groups.add(ch.group);
+                });
+
+                // Popola filtro gruppi
+                groupSelect.innerHTML = '<option value="">📂 Tutti i gruppi</option>';
+                [...groups].sort().forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.textContent = g;
+                    groupSelect.appendChild(opt);
+                });
+
+                filterChannels();
+                statusBadge.textContent = `✅ Caricati ${allChannels.length} canali`;
+                infoBox.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                channelSelect.innerHTML = `<option value="">❌ Errore: ${error.message}</option>`;
+                statusBadge.textContent = '❌ Errore di caricamento';
+                infoBox.style.display = 'none';
+                // Suggerimento per l'utente
+                const msg = document.createElement('div');
+                msg.className = 'error-msg';
+                msg.innerHTML = `
+                    <strong>⚠️ File non trovato!</strong><br>
+                    Assicurati che il file <strong>${M3U_FILE}</strong> sia nella STESSA CARTELLA di questo file HTML.
+                    <br><br>
+                    <strong>Come fare:</strong>
+                    <ol>
+                        <li>Scarica la playlist da <a href="https://forgejo.it/peppenamir/iptv_italia/raw/branch/main/lista.m3u" target="_blank">questo link</a></li>
+                        <li>Salvala come <strong>${M3U_FILE}</strong> nella stessa cartella di questo file HTML</li>
+                        <li>Ricarica questa pagina (F5)</li>
+                    </ol>
+                `;
+                document.querySelector('.container').insertBefore(msg, document.querySelector('.controls'));
+            });
+    }
+
+    // ============================================================
+    //  FILTRO E RENDER
+    // ============================================================
     function filterChannels() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         const selectedGroup = groupSelect.value;
-        
+
         filteredChannels = allChannels.filter(ch => {
             const matchName = ch.name.toLowerCase().includes(searchTerm);
             const matchGroup = selectedGroup === '' || ch.group === selectedGroup;
             return matchName && matchGroup;
         });
 
-        // Ordina per nome
         filteredChannels.sort((a, b) => a.name.localeCompare(b.name));
 
-        // Popola la select
         let html = '';
         let currentGroup = '';
-        
+
         filteredChannels.forEach((ch, index) => {
-            // Mostra l'intestazione del gruppo (se diverso dal precedente)
             if (ch.group !== currentGroup) {
                 currentGroup = ch.group;
                 html += `<option value="" disabled style="font-weight:bold; background:#e9ecef; color:#000;">📁 ${ch.group}</option>`;
             }
-            
-            // Opzione del canale con logo e nome
-            const logoHtml = ch.logo ? `<img src="${ch.logo}" width="24" height="24" style="vertical-align:middle; margin-right:8px; border-radius:4px;" onerror="this.style.display='none'">` : '';
+
+            const logoHtml = ch.logo 
+                ? `<img src="${ch.logo}" class="channel-logo" onerror="this.style.display='none'">` 
+                : '';
+
             html += `<option value="${index}" data-url="${ch.url}" data-useragent="${ch.userAgent || ''}">${logoHtml} ${ch.name}</option>`;
         });
 
@@ -244,15 +317,12 @@
         }
 
         channelSelect.innerHTML = html;
-        
-        // Se c'è un solo canale, lo carica automaticamente (opzionale)
-        // if (filteredChannels.length === 1) {
-        //     channelSelect.value = 0;
-        //     loadChannel();
-        // }
+        channelCounter.textContent = `📡 Canali: ${filteredChannels.length} / ${allChannels.length}`;
     }
 
-    // ========== CARICAMENTO CANALE ==========
+    // ============================================================
+    //  CARICA CANALE NEL PLAYER
+    // ============================================================
     function loadChannel() {
         const selectedIndex = channelSelect.value;
         if (selectedIndex === '' || !filteredChannels[selectedIndex]) {
@@ -263,24 +333,33 @@
 
         const channel = filteredChannels[parseInt(selectedIndex)];
         if (channel && channel.url) {
-            // Imposta lo user-agent se presente (alcuni browser supportano solo tramite estensioni, ma proviamo)
-            // Nota: il tag <video> non supporta nativamente l'impostazione dello user-agent.
-            // Per i canali Rai/Mediaset potrebbe essere necessario usare un proxy o un'estensione.
-            // Questo è un limite del browser.
-            
+            // Avviso per canali che richiedono user-agent specifico
+            if (channel.userAgent && channel.userAgent.includes('HbbTV')) {
+                // Mostra un piccolo avviso (solo se non è già visibile)
+                const existing = document.querySelector('.ua-warning');
+                if (!existing) {
+                    const warn = document.createElement('div');
+                    warn.className = 'error-msg ua-warning';
+                    warn.style.fontSize = '14px';
+                    warn.innerHTML = `ℹ️ Questo canale (${channel.name}) richiede <strong>${channel.userAgent}</strong>. Il browser non può impostarlo, usa <strong>VLC</strong> se non funziona.`;
+                    document.querySelector('.container').insertBefore(warn, document.querySelector('.controls'));
+                    // Rimuovi dopo 6 secondi
+                    setTimeout(() => { if (warn.parentNode) warn.remove(); }, 8000);
+                }
+            }
+
             videoPlayer.src = channel.url;
             videoPlayer.play().catch(error => {
-                console.error('Errore di riproduzione:', error);
-                // Se l'errore è CORS o user-agent, lo segnaliamo
-                if (error.message.includes('CORS') || error.message.includes('403')) {
-                    alert('⚠️ Il canale potrebbe richiedere uno user-agent specifico (es. HbbTV/1.6.1) che il browser non può impostare. Prova con un altro canale o usa un player esterno (VLC).');
-                }
+                console.warn('Riproduzione fallita:', error);
+                // Non mostrare alert per non infastidire, ma segnala in console
             });
         }
     }
 
-    // ========== AVVIA ==========
-    loadPlaylist();
+    // ============================================================
+    //  AVVIO
+    // ============================================================
+    loadLocalPlaylist();
 </script>
 </body>
 </html>
